@@ -64,7 +64,8 @@ app.post('/webhook', async (req, res) => {
         if (processedCount > 0) {
             res.status(200).send(`Processed ${processedCount} checkins`);
         } else {
-            res.status(200).send('No relevant status keywords found in messages');
+            console.log('No relevant status keywords found, or message structure did not match.');
+            res.status(200).send('Request received but no checkins recorded. Check logs for payload details.');
         }
 
     } catch (err) {
