@@ -34,6 +34,7 @@ app.post('/webhook', async (req, res) => {
             messages = [{
                 body: { content: req.body.messageContent },
                 from: { user: { id: req.body.userId, displayName: req.body.userName } },
+                userEmail: req.body.userEmail,
                 id: req.body.messageId,
                 createdDateTime: req.body.timestamp
             }];
