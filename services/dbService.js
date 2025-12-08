@@ -7,10 +7,14 @@ async function initDb() {
                 id SERIAL PRIMARY KEY,
                 userId TEXT,
                 userName TEXT,
+                userEmail TEXT,
                 status TEXT,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 messageId TEXT UNIQUE
             );
+            
+            -- Add column if it doesn't exist (for existing deployments)
+            ALTER TABLE checkins ADD COLUMN IF NOT EXISTS userEmail TEXT;
         `;
         console.log('Database initialized (Table checkins checked/created).');
     } catch (error) {
@@ -18,12 +22,12 @@ async function initDb() {
     }
 }
 
-async function addCheckin(userId, userName, status, messageId, timestamp) {
+async function addCheckin(userId, userName, userEmail, status, messageId, timestamp) {
     try {
         // Postgres doesn't have INSERT OR IGNORE, using ON CONFLICT DO NOTHING
         const result = await sql`
-            INSERT INTO checkins (userId, userName, status, messageId, timestamp)
-            VALUES (${userId}, ${userName}, ${status}, ${messageId}, ${timestamp})
+            INSERT INTO checkins (userId, userName, userEmail, status, messageId, timestamp)
+            VALUES (${userId}, ${userName}, ${userEmail}, ${status}, ${messageId}, ${timestamp})
             ON CONFLICT (messageId) DO NOTHING;
         `;
         return result.rowCount;

@@ -51,6 +51,7 @@ app.post('/webhook', async (req, res) => {
             const content = msg.body?.content?.toLowerCase() || '';
             const userId = msg.from?.user?.id || 'unknown';
             const userName = msg.from?.user?.displayName || 'Unknown User';
+            const userEmail = msg.userEmail || null; // Expecting this from Power Automate
             const messageId = msg.id || `manual-${Date.now()}`;
             const timestamp = msg.createdDateTime || new Date().toISOString();
 
@@ -62,8 +63,8 @@ app.post('/webhook', async (req, res) => {
             }
 
             if (status) {
-                await dbService.addCheckin(userId, userName, status, messageId, timestamp);
-                console.log(`Recorded checkin: ${userName} is ${status}`);
+                await dbService.addCheckin(userId, userName, userEmail, status, messageId, timestamp);
+                console.log(`Recorded checkin: ${userName} (${userEmail}) is ${status}`);
                 processedCount++;
             }
         }
@@ -87,7 +88,8 @@ app.get('/', async (req, res) => {
         const report = await dbService.getTodayReport();
         let html = '<h1>WFH Beacon Report (Today)</h1><ul>';
         report.forEach(row => {
-            html += `<li><strong>${row.userName}</strong>: ${row.status} (at ${new Date(row.timestamp).toLocaleTimeString()})</li>`;
+            const emailDisplay = row.useremail ? ` (${row.useremail})` : '';
+            html += `<li><strong>${row.username}</strong>${emailDisplay}: ${row.status} (at ${new Date(row.timestamp).toLocaleTimeString()})</li>`;
         });
         html += '</ul>';
         res.send(html);
