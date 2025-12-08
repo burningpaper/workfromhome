@@ -17,9 +17,13 @@ async function initDb() {
             ALTER TABLE checkins ADD COLUMN IF NOT EXISTS userEmail TEXT;
         `;
         console.log('Database initialized (Table checkins checked/created).');
-    } catch (error) {
-        console.error('Error initializing database:', error);
+    } catch (err) {
+        console.log('Column userEmail might already exist or error adding it:', err);
     }
+}
+
+async function debugAddColumn() {
+    await sql`ALTER TABLE checkins ADD COLUMN userEmail TEXT;`;
 }
 
 async function addCheckin(userId, userName, userEmail, status, messageId, timestamp) {
@@ -61,7 +65,9 @@ async function getTodayReport() {
 initDb();
 
 module.exports = {
+    initDb,
     addCheckin,
     getTodayReport,
-    initDb
+    debugAddColumn
 };
+```
