@@ -74,7 +74,9 @@ app.post('/webhook', async (req, res) => {
             res.status(200).send(`Processed ${processedCount} checkins`);
         } else {
             console.log('No relevant status keywords found, or message structure did not match.');
-            res.status(200).send('Request received but no checkins recorded. Check logs for payload details.');
+            // Create a summary of what was seen for debugging
+            const seenContent = messages.map(m => m.body?.content).join(' | ');
+            res.status(200).send(`Request received but no checkins recorded. Server saw content: "${seenContent}". Keywords looked for: wfh, office.`);
         }
 
     } catch (err) {
