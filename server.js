@@ -14,7 +14,8 @@ app.post('/webhook', async (req, res) => {
     const { userId, userName, messageContent, messageId, timestamp } = req.body;
 
     if (!messageContent) {
-        return res.status(400).send('Missing messageContent');
+        console.error('Missing messageContent. Body:', req.body);
+        return res.status(400).send(`Missing messageContent. Received body: ${JSON.stringify(req.body)}`);
     }
 
     const content = messageContent.toLowerCase();
