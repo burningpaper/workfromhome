@@ -28,7 +28,12 @@ async function addCheckin(userId, userName, userEmail, status, messageId, timest
         const result = await sql`
             INSERT INTO checkins (userId, userName, userEmail, status, messageId, timestamp)
             VALUES (${userId}, ${userName}, ${userEmail}, ${status}, ${messageId}, ${timestamp})
-            ON CONFLICT (messageId) DO NOTHING;
+            ON CONFLICT (messageId) DO UPDATE SET
+                userId = EXCLUDED.userId,
+                userName = EXCLUDED.userName,
+                userEmail = EXCLUDED.userEmail,
+                status = EXCLUDED.status,
+                timestamp = EXCLUDED.timestamp;
         `;
         return result.rowCount;
     } catch (error) {
