@@ -102,15 +102,6 @@ app.get('/', async (req, res) => {
     }
 });
 
-app.get('/debug-db', async (req, res) => {
-    try {
-        await dbService.debugAddColumn();
-        res.send('Debug: Column added successfully');
-    } catch (err) {
-        res.status(500).send(`Debug Error: ${err.message}`);
-    }
-});
-
 app.get('/init-db', async (req, res) => {
     try {
         await dbService.initDb();

@@ -22,10 +22,6 @@ async function initDb() {
     }
 }
 
-async function debugAddColumn() {
-    await sql`ALTER TABLE checkins ADD COLUMN userEmail TEXT;`;
-}
-
 async function addCheckin(userId, userName, userEmail, status, messageId, timestamp) {
     try {
         // Postgres doesn't have INSERT OR IGNORE, using ON CONFLICT DO NOTHING
@@ -67,6 +63,5 @@ initDb();
 module.exports = {
     initDb,
     addCheckin,
-    getTodayReport,
-    debugAddColumn
+    getTodayReport
 };
