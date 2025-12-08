@@ -5,7 +5,8 @@ const dbService = require('./services/dbService');
 const app = express();
 
 // Middleware to parse JSON bodies (from Power Automate)
-app.use(express.json());
+// parsing all types to handle missing Content-Type header from Power Automate
+app.use(express.json({ type: '*/*' }));
 
 // Webhook Endpoint
 app.post('/webhook', async (req, res) => {
