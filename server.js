@@ -12,9 +12,9 @@ app.post('/webhook', async (req, res) => {
     console.log('Received Webhook Headers:', JSON.stringify(req.headers, null, 2));
     console.log('Received Webhook Body:', JSON.stringify(req.body, null, 2));
 
-    if (!req.body) {
-        console.error('req.body is undefined. Check Content-Type header.');
-        return res.status(400).send('req.body is undefined. Ensure Content-Type is application/json');
+    if (!req.body || Object.keys(req.body).length === 0) {
+        console.error('req.body is undefined or empty.');
+        return res.status(400).send(`req.body is undefined/empty. Headers received: ${JSON.stringify(req.headers, null, 2)}`);
     }
 
     try {
