@@ -53,5 +53,6 @@ initDb();
 
 module.exports = {
     addCheckin,
-    getTodayReport
+    getTodayReport,
+    initDb
 };

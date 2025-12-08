@@ -61,7 +61,17 @@ app.get('/', async (req, res) => {
         html += '</ul>';
         res.send(html);
     } catch (err) {
-        res.status(500).send('Error generating report');
+        console.error(err);
+        res.status(500).send(`Error generating report: ${err.message}<br><pre>${err.stack}</pre>`);
+    }
+});
+
+app.get('/init-db', async (req, res) => {
+    try {
+        await dbService.initDb();
+        res.send('Database initialized successfully');
+    } catch (err) {
+        res.status(500).send(`Error initializing database: ${err.message}`);
     }
 });
 
