@@ -9,7 +9,13 @@ app.use(express.json());
 
 // Webhook Endpoint
 app.post('/webhook', async (req, res) => {
+    console.log('Received Webhook Headers:', JSON.stringify(req.headers, null, 2));
     console.log('Received Webhook Body:', JSON.stringify(req.body, null, 2));
+
+    if (!req.body) {
+        console.error('req.body is undefined. Check Content-Type header.');
+        return res.status(400).send('req.body is undefined. Ensure Content-Type is application/json');
+    }
 
     try {
         let messages = [];
