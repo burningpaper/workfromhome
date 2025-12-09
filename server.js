@@ -64,9 +64,13 @@ app.post('/webhook', async (req, res) => {
             }
 
             if (status) {
-                await dbService.addCheckin(userId, userName, userEmail, status, messageId, timestamp);
-                console.log(`Recorded checkin: ${userName} (${userEmail}) is ${status}`);
-                processedCount++;
+                const result = await dbService.addCheckin(userId, userName, userEmail, status, messageId, timestamp);
+                if (result > 0) {
+                    console.log(`Recorded checkin: ${userName} (${userEmail}) is ${status}`);
+                    processedCount++;
+                } else {
+                    console.log(`Duplicate checkin ignored for: ${userName}`);
+                }
             }
         }
 
