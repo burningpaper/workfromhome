@@ -110,15 +110,6 @@ app.post('/api/import-users', async (req, res) => {
     }
 });
 
-app.get('/api/debug-checkins', async (req, res) => {
-    try {
-        const result = await dbService.debugCheckins();
-        res.json(result);
-    } catch (err) {
-        res.status(500).send(`Error debugging checkins: ${err.message}`);
-    }
-});
-
 app.get('/api/dashboard', async (req, res) => {
     try {
         const stats = await dbService.getDashboardStats();
