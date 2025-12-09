@@ -110,6 +110,15 @@ app.post('/api/import-users', async (req, res) => {
     }
 });
 
+app.post('/api/clear-users', async (req, res) => {
+    try {
+        await dbService.clearUsers();
+        res.send('Users table cleared successfully');
+    } catch (err) {
+        res.status(500).send(`Error clearing users: ${err.message}`);
+    }
+});
+
 app.get('/api/dashboard', async (req, res) => {
     try {
         const stats = await dbService.getDashboardStats();
