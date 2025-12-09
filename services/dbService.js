@@ -24,6 +24,22 @@ async function initDb() {
 
 async function addCheckin(userId, userName, userEmail, status, messageId, timestamp) {
     try {
+        // Check if user already checked in today (using the message timestamp)
+        // We cast the input timestamp to a date to compare with stored records
+        if (userId && userId !== 'unknown') {
+            const existing = await sql`
+                SELECT id FROM checkins 
+                WHERE userId = ${userId} 
+                AND timestamp::date = ${timestamp}::timestamp::date
+                LIMIT 1;
+            `;
+
+            if (existing.rowCount > 0) {
+                console.log(`User ${userName} (${userId}) already checked in on ${timestamp}. Ignoring.`);
+                return 0;
+            }
+        }
+
         // Postgres doesn't have INSERT OR IGNORE, using ON CONFLICT DO NOTHING
         const result = await sql`
             INSERT INTO checkins (userId, userName, userEmail, status, messageId, timestamp)
