@@ -51,10 +51,22 @@ async function importUsers(usersList) {
     try {
         let count = 0;
         for (const user of usersList) {
+            // Map fields from various possible input names
+            const name = user.name || user.Name;
+            const email = user.email || user.Email; // Critical field
+            const city = user.city || user.City;
+            const jobTitle = user.jobTitle || user['job title'] || user['Job Title'];
+            const companyName = user.companyName || user.company || user.Company;
+
+            if (!email) {
+                console.warn(`Skipping user ${name} due to missing email.`);
+                continue;
+            }
+
             // Upsert user based on email
             await sql`
                 INSERT INTO users (name, email, city, jobTitle, companyName)
-                VALUES (${user.name}, ${user.email}, ${user.city}, ${user.jobTitle}, ${user.companyName})
+                VALUES (${name}, ${email}, ${city}, ${jobTitle}, ${companyName})
                 ON CONFLICT (email) DO UPDATE SET
                     name = EXCLUDED.name,
                     city = EXCLUDED.city,
