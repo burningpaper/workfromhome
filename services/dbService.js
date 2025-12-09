@@ -200,5 +200,20 @@ module.exports = {
     addCheckin,
     getTodayReport,
     importUsers,
-    getDashboardStats
+    getDashboardStats,
+    debugCheckins
 };
+
+async function debugCheckins() {
+    try {
+        const rows = await sql`SELECT * FROM checkins ORDER BY timestamp DESC LIMIT 20;`;
+        const time = await sql`SELECT CURRENT_DATE, CURRENT_TIMESTAMP, NOW();`;
+        return {
+            dbTime: time.rows[0],
+            checkins: rows.rows
+        };
+    } catch (error) {
+        console.error('Error debugging checkins:', error);
+        throw error;
+    }
+}
