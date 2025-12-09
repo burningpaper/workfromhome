@@ -110,6 +110,29 @@ app.post('/api/import-users', async (req, res) => {
     }
 });
 
+app.post('/api/checkin', async (req, res) => {
+    try {
+        const { name, email } = req.body;
+        if (!name || !email) {
+            return res.status(400).send('Name and Email are required');
+        }
+
+        // Generate a unique message ID for this app check-in
+        const timestamp = new Date().toISOString();
+        const messageId = `app-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+        const result = await dbService.addCheckin('app-user', name, email, 'WFH', messageId, timestamp);
+
+        if (result > 0) {
+            res.send('Check-in recorded successfully');
+        } else {
+            res.send('You have already checked in today');
+        }
+    } catch (err) {
+        res.status(500).send(`Error processing check-in: ${err.message}`);
+    }
+});
+
 app.get('/api/dashboard', async (req, res) => {
     try {
         const stats = await dbService.getDashboardStats();
