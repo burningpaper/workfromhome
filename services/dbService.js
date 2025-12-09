@@ -12,10 +12,16 @@ async function initDb() {
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 messageId TEXT UNIQUE
             );
-            
-            -- Add column if it doesn't exist (for existing deployments)
-            ALTER TABLE checkins ADD COLUMN IF NOT EXISTS userEmail TEXT;
+        `;
 
+        try {
+            await sql`ALTER TABLE checkins ADD COLUMN IF NOT EXISTS userEmail TEXT;`;
+        } catch (e) {
+            // Ignore if column exists or other non-critical error
+            console.log('Alter table error (might be benign):', e);
+        }
+
+        await sql`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 name TEXT,
@@ -23,9 +29,10 @@ async function initDb() {
                 city TEXT
             );
         `;
-        console.log('Database initialized (Tables checkins, users checked/created).');
+        console.log('Database initialized.');
     } catch (err) {
-        console.log('Error initializing database:', err);
+        console.error('Error initializing database:', err);
+        throw err; // Propagate error to server.js
     }
 }
 
