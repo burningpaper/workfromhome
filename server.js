@@ -115,6 +115,15 @@ app.post('/api/import-users', async (req, res) => {
     }
 });
 
+app.get('/api/dashboard', async (req, res) => {
+    try {
+        const stats = await dbService.getDashboardStats();
+        res.json(stats);
+    } catch (err) {
+        res.status(500).send(`Error getting dashboard stats: ${err.message}`);
+    }
+});
+
 app.get('/init-db', async (req, res) => {
     try {
         await dbService.initDb();

@@ -101,6 +101,65 @@ async function getTodayReport() {
     }
 }
 
+async function getDashboardStats() {
+    try {
+        // 1. Total WFH Today
+        const wfhResult = await sql`
+            SELECT COUNT(DISTINCT userId) as count 
+            FROM checkins 
+            WHERE timestamp::date = CURRENT_DATE 
+            AND status = 'WFH';
+        `;
+        const totalWFH = parseInt(wfhResult.rows[0].count);
+
+        // 2. Total Staff (for percentage)
+        const staffResult = await sql`SELECT COUNT(*) as count FROM users;`;
+        const totalStaff = parseInt(staffResult.rows[0].count);
+        const wfhPercentage = totalStaff > 0 ? Math.round((totalWFH / totalStaff) * 100) : 0;
+
+        // 3. WFH by City (Join checkins with users)
+        // We join on email. If user not in DB, city is 'Unknown'
+        const cityResult = await sql`
+            SELECT COALESCE(u.city, 'Unknown') as city, COUNT(DISTINCT c.userId) as count
+            FROM checkins c
+            LEFT JOIN users u ON c.userEmail = u.email
+            WHERE c.timestamp::date = CURRENT_DATE
+            AND c.status = 'WFH'
+            GROUP BY COALESCE(u.city, 'Unknown');
+        `;
+        const byCity = cityResult.rows;
+
+        // 4. Check-ins by Time (15m buckets)
+        // Postgres: date_trunc('hour', timestamp) + interval '15 min' * floor(date_part('minute', timestamp) / 15)
+        const timeResult = await sql`
+            SELECT 
+                to_char(
+                    date_trunc('hour', timestamp) + 
+                    interval '15 min' * floor(date_part('minute', timestamp) / 15), 
+                    'HH24:MI'
+                ) as time_slot,
+                COUNT(*) as count
+            FROM checkins
+            WHERE timestamp::date = CURRENT_DATE
+            GROUP BY time_slot
+            ORDER BY time_slot;
+        `;
+        const byTime = timeResult.rows;
+
+        return {
+            totalWFH,
+            totalStaff,
+            wfhPercentage,
+            byCity,
+            byTime
+        };
+
+    } catch (error) {
+        console.error('Error getting dashboard stats:', error);
+        throw error;
+    }
+}
+
 // Initialize on require (or could be explicit)
 initDb();
 
@@ -108,5 +167,6 @@ module.exports = {
     initDb,
     addCheckin,
     getTodayReport,
-    importUsers
+    importUsers,
+    getDashboardStats
 };
