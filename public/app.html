@@ -114,7 +114,15 @@
 
         if (storedName && storedEmail) {
             showCheckin(storedName);
+            checkDailyStatus();
         }
+
+        // Re-check status when app comes to foreground (e.g. opening next morning)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && localStorage.getItem('wfh_name')) {
+                checkDailyStatus();
+            }
+        });
 
         function saveUser() {
             const name = document.getElementById('nameInput').value.trim();
@@ -128,12 +136,34 @@
             localStorage.setItem('wfh_name', name);
             localStorage.setItem('wfh_email', email);
             showCheckin(name);
+            checkDailyStatus();
         }
 
         function showCheckin(name) {
             document.getElementById('registerView').classList.add('hidden');
             document.getElementById('checkinView').classList.remove('hidden');
             document.getElementById('welcomeMsg').innerText = `Ready to check in, ${name.split(' ')[0]}?`;
+        }
+
+        function checkDailyStatus() {
+            const lastDate = localStorage.getItem('wfh_last_date');
+            const today = new Date().toDateString();
+            const btn = document.getElementById('checkinBtn');
+            const status = document.getElementById('status');
+
+            if (lastDate === today) {
+                // Already checked in today
+                btn.disabled = true;
+                btn.innerText = 'Checked In ✅';
+                btn.style.backgroundColor = '#107c10'; // Green
+                status.innerText = 'Enjoy your day!';
+            } else {
+                // New day, reset button
+                btn.disabled = false;
+                btn.innerText = "I'm Working From Home";
+                btn.style.backgroundColor = '#0078d4'; // Blue
+                status.innerText = '';
+            }
         }
 
         async function doCheckin() {
@@ -154,9 +184,16 @@
                 });
                 const text = await res.text();
 
-                status.innerText = text;
-                status.style.color = text.includes('successfully') ? 'green' : '#ff8c00';
-                btn.innerText = 'Done!';
+                if (text.includes('successfully') || text.includes('already')) {
+                    // Mark as done for today
+                    localStorage.setItem('wfh_last_date', new Date().toDateString());
+                    checkDailyStatus();
+                } else {
+                    status.innerText = text;
+                    status.style.color = 'red';
+                    btn.innerText = 'Try Again';
+                    btn.disabled = false;
+                }
             } catch (err) {
                 status.innerText = 'Error connecting to server';
                 status.style.color = 'red';
