@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WFH Beacon Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #333; }
+        .cards { display: flex; gap: 20px; margin-bottom: 30px; }
+        .card { flex: 1; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
+        .card h2 { margin: 0; font-size: 2em; color: #0078d4; }
+        .card p { margin: 5px 0 0; color: #666; }
+        .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .chart-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .admin-panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 30px; }
+        textarea { width: 100%; height: 100px; margin-top: 10px; }
+        button { background-color: #0078d4; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #005a9e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WFH Beacon Dashboard 🏠</h1>
+        
+        <div class="cards">
+            <div class="card">
+                <h2 id="totalWFH">-</h2>
+                <p>Working From Home Today</p>
+            </div>
+            <div class="card">
+                <h2 id="wfhPercentage">-</h2>
+                <p>% of Total Staff</p>
+            </div>
+            <div class="card">
+                <h2 id="totalStaff">-</h2>
+                <p>Total Staff Count</p>
+            </div>
+        </div>
+
+        <div class="charts">
+            <div class="chart-container">
+                <h3>WFH by City</h3>
+                <canvas id="cityChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Check-ins by Time (15m)</h3>
+                <canvas id="timeChart"></canvas>
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <h3>Admin: Import Staff List</h3>
+            <p>Paste JSON array of users: <code>[{"name": "John", "email": "john@co.com", "city": "London"}, ...]</code></p>
+            <textarea id="importJson" placeholder='[{"name": "Name", "email": "email@example.com", "city": "City"}]'></textarea>
+            <button onclick="importUsers()">Import Users</button>
+            <p id="importStatus"></p>
+        </div>
+    </div>
+
+    <script>
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/dashboard');
+                const data = await response.json();
+
+                document.getElementById('totalWFH').innerText = data.totalWFH;
+                document.getElementById('wfhPercentage').innerText = data.wfhPercentage + '%';
+                document.getElementById('totalStaff').innerText = data.totalStaff;
+
+                // City Chart
+                const cityCtx = document.getElementById('cityChart').getContext('2d');
+                new Chart(cityCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: data.byCity.map(d => d.city),
+                        datasets: [{
+                            data: data.byCity.map(d => d.count),
+                            backgroundColor: ['#0078d4', '#00bcf2', '#00cc6a', '#ff8c00', '#ea4300']
+                        }]
+                    }
+                });
+
+                // Time Chart
+                const timeCtx = document.getElementById('timeChart').getContext('2d');
+                new Chart(timeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.byTime.map(d => d.time_slot),
+                        datasets: [{
+                            label: 'Check-ins',
+                            data: data.byTime.map(d => d.count),
+                            backgroundColor: '#0078d4'
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                        }
+                    }
+                });
+
+            } catch (err) {
+                console.error('Error loading dashboard:', err);
+            }
+        }
+
+        async function importUsers() {
+            const json = document.getElementById('importJson').value;
+            const status = document.getElementById('importStatus');
+            try {
+                const parsed = JSON.parse(json);
+                const res = await fetch('/api/import-users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(parsed)
+                });
+                const text = await res.text();
+                status.innerText = text;
+                status.style.color = 'green';
+                loadDashboard(); // Reload stats
+            } catch (err) {
+                status.innerText = 'Error: Invalid JSON or Server Error';
+                status.style.color = 'red';
+            }
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

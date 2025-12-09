@@ -85,21 +85,12 @@ app.post('/webhook', async (req, res) => {
     }
 });
 
-// Simple API to view report
-app.get('/', async (req, res) => {
-    try {
-        const report = await dbService.getTodayReport();
-        let html = '<h1>WFH Beacon Report (Today)</h1><ul>';
-        report.forEach(row => {
-            const emailDisplay = row.useremail ? ` (${row.useremail})` : '';
-            html += `<li><strong>${row.username}</strong>${emailDisplay}: ${row.status} (at ${new Date(row.timestamp).toLocaleTimeString()})</li>`;
-        });
-        html += '</ul>';
-        res.send(html);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send(`Error generating report: ${err.message}<br><pre>${err.stack}</pre>`);
-    }
+// Serve static files from 'public' directory
+app.use(express.static('public'));
+
+// Fallback for root if index.html isn't picked up automatically (though express.static usually handles it)
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
 });
 
 app.post('/api/import-users', async (req, res) => {
