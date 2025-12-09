@@ -82,16 +82,6 @@ async function importUsers(usersList) {
     }
 }
 
-async function clearUsers() {
-    try {
-        await sql`TRUNCATE TABLE users;`;
-        console.log('Users table cleared.');
-    } catch (error) {
-        console.error('Error clearing users:', error);
-        throw error;
-    }
-}
-
 async function addCheckin(userId, userName, userEmail, status, messageId, timestamp) {
     try {
         // Check if user already checked in today (using the message timestamp)
@@ -210,6 +200,5 @@ module.exports = {
     addCheckin,
     getTodayReport,
     importUsers,
-    getDashboardStats,
-    clearUsers
+    getDashboardStats
 };
