@@ -26,9 +26,20 @@ async function initDb() {
                 id SERIAL PRIMARY KEY,
                 name TEXT,
                 email TEXT UNIQUE,
-                city TEXT
+                city TEXT,
+                jobTitle TEXT,
+                companyName TEXT
             );
         `;
+
+        // Add new columns if they don't exist
+        try {
+            await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS jobTitle TEXT;`;
+            await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS companyName TEXT;`;
+        } catch (e) {
+            console.log('Alter table users error:', e);
+        }
+
         console.log('Database initialized.');
     } catch (err) {
         console.error('Error initializing database:', err);
@@ -42,11 +53,13 @@ async function importUsers(usersList) {
         for (const user of usersList) {
             // Upsert user based on email
             await sql`
-                INSERT INTO users (name, email, city)
-                VALUES (${user.name}, ${user.email}, ${user.city})
+                INSERT INTO users (name, email, city, jobTitle, companyName)
+                VALUES (${user.name}, ${user.email}, ${user.city}, ${user.jobTitle}, ${user.companyName})
                 ON CONFLICT (email) DO UPDATE SET
                     name = EXCLUDED.name,
-                    city = EXCLUDED.city;
+                    city = EXCLUDED.city,
+                    jobTitle = EXCLUDED.jobTitle,
+                    companyName = EXCLUDED.companyName;
             `;
             count++;
         }
