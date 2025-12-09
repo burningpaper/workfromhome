@@ -137,17 +137,17 @@ async function getDashboardStats() {
         const totalStaff = parseInt(staffResult.rows[0].count);
         const wfhPercentage = totalStaff > 0 ? Math.round((totalWFH / totalStaff) * 100) : 0;
 
-        // 3. WFH by City (Join checkins with users)
-        // We join on email. If user not in DB, city is 'Unknown'
-        const cityResult = await sql`
-            SELECT COALESCE(u.city, 'Unknown') as city, COUNT(DISTINCT c.userId) as count
+        // 3. WFH by Job Title (Join checkins with users)
+        // We join on email. If user not in DB, job title is 'Unknown'
+        const jobResult = await sql`
+            SELECT COALESCE(u.jobTitle, 'Unknown') as job_title, COUNT(DISTINCT c.userId) as count
             FROM checkins c
             LEFT JOIN users u ON c.userEmail = u.email
             WHERE c.timestamp::date = CURRENT_DATE
             AND c.status = 'WFH'
-            GROUP BY COALESCE(u.city, 'Unknown');
+            GROUP BY COALESCE(u.jobTitle, 'Unknown');
         `;
-        const byCity = cityResult.rows;
+        const byJobTitle = jobResult.rows;
 
         // 4. Check-ins by Time (15m buckets)
         // Postgres: date_trunc('hour', timestamp) + interval '15 min' * floor(date_part('minute', timestamp) / 15)
@@ -170,7 +170,7 @@ async function getDashboardStats() {
             totalWFH,
             totalStaff,
             wfhPercentage,
-            byCity,
+            byJobTitle,
             byTime
         };
 
