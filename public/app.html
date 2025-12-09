@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>WFH Check-in</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 320px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: #0078d4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:active {
+            background-color: #005a9e;
+            transform: scale(0.98);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #status {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+            min-height: 20px;
+        }
+
+        .welcome {
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .reset-link {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="registerView">
+        <h1>Setup WFH App 🏠</h1>
+        <p style="color:#666; margin-bottom:20px;">Enter your details once.</p>
+        <input type="text" id="nameInput" placeholder="Full Name">
+        <input type="email" id="emailInput" placeholder="Work Email">
+        <button onclick="saveUser()">Save & Continue</button>
+    </div>
+
+    <div class="container hidden" id="checkinView">
+        <h1>Good Morning! ☀️</h1>
+        <p class="welcome" id="welcomeMsg"></p>
+        <button onclick="doCheckin()" id="checkinBtn">I'm Working From Home</button>
+        <p id="status"></p>
+        <div class="reset-link" onclick="resetUser()">Not you? Reset App</div>
+    </div>
+
+    <script>
+        // Check LocalStorage on load
+        const storedName = localStorage.getItem('wfh_name');
+        const storedEmail = localStorage.getItem('wfh_email');
+
+        if (storedName && storedEmail) {
+            showCheckin(storedName);
+        }
+
+        function saveUser() {
+            const name = document.getElementById('nameInput').value.trim();
+            const email = document.getElementById('emailInput').value.trim();
+
+            if (!name || !email) {
+                alert('Please enter both name and email.');
+                return;
+            }
+
+            localStorage.setItem('wfh_name', name);
+            localStorage.setItem('wfh_email', email);
+            showCheckin(name);
+        }
+
+        function showCheckin(name) {
+            document.getElementById('registerView').classList.add('hidden');
+            document.getElementById('checkinView').classList.remove('hidden');
+            document.getElementById('welcomeMsg').innerText = `Ready to check in, ${name.split(' ')[0]}?`;
+        }
+
+        async function doCheckin() {
+            const btn = document.getElementById('checkinBtn');
+            const status = document.getElementById('status');
+            const name = localStorage.getItem('wfh_name');
+            const email = localStorage.getItem('wfh_email');
+
+            btn.disabled = true;
+            btn.innerText = 'Checking in...';
+            status.innerText = '';
+
+            try {
+                const res = await fetch('/api/checkin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email })
+                });
+                const text = await res.text();
+
+                status.innerText = text;
+                status.style.color = text.includes('successfully') ? 'green' : '#ff8c00';
+                btn.innerText = 'Done!';
+            } catch (err) {
+                status.innerText = 'Error connecting to server';
+                status.style.color = 'red';
+                btn.innerText = 'Try Again';
+                btn.disabled = false;
+            }
+        }
+
+        function resetUser() {
+            if (confirm('Reset app and clear your details?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+    </script>
+</body>
+
+</html>
