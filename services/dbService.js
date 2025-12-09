@@ -136,8 +136,9 @@ async function getTodayReport() {
 async function getDashboardStats() {
     try {
         // 1. Total WFH Today
+        // We use userEmail because userId might be 'unknown' if not sent by client
         const wfhResult = await sql`
-            SELECT COUNT(DISTINCT userId) as count 
+            SELECT COUNT(DISTINCT userEmail) as count 
             FROM checkins 
             WHERE timestamp::date = CURRENT_DATE 
             AND status = 'WFH';
@@ -152,7 +153,7 @@ async function getDashboardStats() {
         // 3. WFH by Job Title (Join checkins with users)
         // We join on email. If user not in DB, job title is 'Unknown'
         const jobResult = await sql`
-            SELECT COALESCE(u.jobTitle, 'Unknown') as job_title, COUNT(DISTINCT c.userId) as count
+            SELECT COALESCE(u.jobTitle, 'Unknown') as job_title, COUNT(DISTINCT c.userEmail) as count
             FROM checkins c
             LEFT JOIN users u ON c.userEmail = u.email
             WHERE c.timestamp::date = CURRENT_DATE
