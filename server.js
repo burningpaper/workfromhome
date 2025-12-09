@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const config = require('./config');
 const dbService = require('./services/dbService');
 
@@ -90,11 +91,16 @@ app.post('/webhook', async (req, res) => {
 });
 
 // Serve static files from 'public' directory
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Fallback for root if index.html isn't picked up automatically (though express.static usually handles it)
+// Explicit route for app.html to ensure it's served
+app.get('/app.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'app.html'));
+});
+
+// Fallback for root
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.post('/api/import-users', async (req, res) => {
