@@ -84,16 +84,26 @@ async function importUsers(usersList) {
 
 async function addCheckin(userId, userName, userEmail, status, messageId, timestamp) {
     try {
-        // Check if user already checked in today (using the message timestamp)
-        // We cast the input timestamp to a date to compare with stored records
-        if (userId && userId !== 'unknown') {
+        // Check if user already checked in today
+        // We prefer checking by userEmail if available, otherwise userId
+        if (userEmail) {
+            const existing = await sql`
+                SELECT id FROM checkins 
+                WHERE userEmail = ${userEmail} 
+                AND timestamp::date = ${timestamp}::timestamp::date
+                LIMIT 1;
+            `;
+            if (existing.rowCount > 0) {
+                console.log(`User ${userName} (${userEmail}) already checked in on ${timestamp}. Ignoring.`);
+                return 0;
+            }
+        } else if (userId && userId !== 'unknown') {
             const existing = await sql`
                 SELECT id FROM checkins 
                 WHERE userId = ${userId} 
                 AND timestamp::date = ${timestamp}::timestamp::date
                 LIMIT 1;
             `;
-
             if (existing.rowCount > 0) {
                 console.log(`User ${userName} (${userId}) already checked in on ${timestamp}. Ignoring.`);
                 return 0;
