@@ -102,6 +102,19 @@ app.get('/', async (req, res) => {
     }
 });
 
+app.post('/api/import-users', async (req, res) => {
+    try {
+        const users = req.body; // Expecting JSON array of {name, email, city}
+        if (!Array.isArray(users)) {
+            return res.status(400).send('Body must be an array of users');
+        }
+        const count = await dbService.importUsers(users);
+        res.send(`Successfully imported/updated ${count} users`);
+    } catch (err) {
+        res.status(500).send(`Error importing users: ${err.message}`);
+    }
+});
+
 app.get('/init-db', async (req, res) => {
     try {
         await dbService.initDb();

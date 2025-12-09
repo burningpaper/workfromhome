@@ -15,10 +15,38 @@ async function initDb() {
             
             -- Add column if it doesn't exist (for existing deployments)
             ALTER TABLE checkins ADD COLUMN IF NOT EXISTS userEmail TEXT;
+
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                name TEXT,
+                email TEXT UNIQUE,
+                city TEXT
+            );
         `;
-        console.log('Database initialized (Table checkins checked/created).');
+        console.log('Database initialized (Tables checkins, users checked/created).');
     } catch (err) {
-        console.log('Column userEmail might already exist or error adding it:', err);
+        console.log('Error initializing database:', err);
+    }
+}
+
+async function importUsers(usersList) {
+    try {
+        let count = 0;
+        for (const user of usersList) {
+            // Upsert user based on email
+            await sql`
+                INSERT INTO users (name, email, city)
+                VALUES (${user.name}, ${user.email}, ${user.city})
+                ON CONFLICT (email) DO UPDATE SET
+                    name = EXCLUDED.name,
+                    city = EXCLUDED.city;
+            `;
+            count++;
+        }
+        return count;
+    } catch (error) {
+        console.error('Error importing users:', error);
+        throw error;
     }
 }
 
@@ -79,5 +107,6 @@ initDb();
 module.exports = {
     initDb,
     addCheckin,
-    getTodayReport
+    getTodayReport,
+    importUsers
 };
