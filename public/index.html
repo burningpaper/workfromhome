@@ -125,11 +125,12 @@
 
         <div class="admin-panel">
             <h3>Admin: Import Staff List</h3>
-            <p>Paste JSON array of users:
-                <code>[{"name": "John", "email": "john@co.com", "jobTitle": "Dev", "companyName": "Acme"}, ...]</code>
+            <p>Paste JSON array of users. <strong>Email is required</strong> to link with Teams.</p>
+            <p>Example:
+                <code>[{"name": "Abdul", "email": "abdul@co.com", "job title": "Manager", "company": "VML"}, ...]</code>
             </p>
             <textarea id="importJson"
-                placeholder='[{"name": "Name", "email": "email@example.com", "jobTitle": "Job Title", "companyName": "Company"}]'></textarea>
+                placeholder='[{"name": "Name", "email": "email@example.com", "job title": "Job Title", "company": "Company"}]'></textarea>
             <button onclick="importUsers()">Import Users</button>
             <p id="importStatus"></p>
         </div>
